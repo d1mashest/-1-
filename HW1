@@ -1,0 +1,93 @@
+!wget https://d1qb6yzwaaq4he.cloudfront.net/protocols/o3field/msr2/MSR-2.nc
+import argparse
+import json
+import sys
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import numpy as np
+from scipy.io import netcdf_file
+
+mean_o3_all = []
+mean_o3_jan = []
+mean_o3_jul = []
+max_o3_all = 0
+max_o3_jan = 0
+max_o3_jul = 0
+min_o3_all = 10000
+min_o3_jan = 10000
+min_o3_jul = 10000
+
+with netcdf_file('MSR-2.nc', mmap=False) as netcdf:
+    vars = netcdf.variables
+
+parser = argparse.ArgumentParser()
+parser.add_argument('longitude', metavar='LON', type=float, help='Longitude, deg')
+parser.add_argument('latitude', metavar='LAT', type=float, help='Latitude, deg')
+args = parser.parse_args()
+lat = args.latitude
+lon = args.longitude
+
+lon_idx = np.searchsorted(vars['longitude'].data, lon)
+lat_idx = np.searchsorted(vars['latitude'].data, lat)
+
+mnth_count_jan = 0
+mnth_count_jul = 0
+all_count = 0
+
+for i in range(108, 612, 12):
+    time_idx_jan = np.searchsorted(vars['time'].data, i)
+    mnth_count_jan += 1
+    min_o3_jan = min(min_o3_jan, vars['Average_O3_column'][time_idx_jan, lat_idx, lon_idx])
+    max_o3_jan = max(max_o3_jan, vars['Average_O3_column'][time_idx_jan, lat_idx, lon_idx])
+    mean_o3_jan.append(vars['Average_O3_column'][time_idx_jan, lat_idx, lon_idx])
+
+for i in range(108, 612, 12):
+    time_idx_jul = np.searchsorted(vars['time'].data, i + 6)
+    mnth_count_jul += 1
+    min_o3_jul = min(min_o3_jul, vars['Average_O3_column'][time_idx_jul, lat_idx, lon_idx])
+    max_o3_jul = max(max_o3_jul, vars['Average_O3_column'][time_idx_jul, lat_idx, lon_idx])
+    mean_o3_jul.append(vars['Average_O3_column'][time_idx_jul, lat_idx, lon_idx])
+
+for i in range(108, 612):
+    time_idx_all = np.searchsorted(vars['time'].data, i)
+    all_count += 1
+    min_o3_all = min(min_o3_jan, vars['Average_O3_column'][time_idx_all, lat_idx, lon_idx])
+    max_o3_all = max(max_o3_jan, vars['Average_O3_column'][time_idx_all, lat_idx, lon_idx])
+    mean_o3_all.append(vars['Average_O3_column'][time_idx_all, lat_idx, lon_idx])
+
+json_answer = {
+    "coordinates": [lon, lat],
+    "jan": {
+        "min": float(min_o3_jan),
+        "max": float(max_o3_jan),
+        "mean": round(sum(mean_o3_jan) / mnth_count_jan, 1)
+    },
+    "jul": {
+        "min": float(min_o3_jul),
+        "max": float(max_o3_jul),
+        "mean": round(sum(mean_o3_jul) / mnth_count_jul, 1)
+    },
+    "all": {
+        "min": float(min_o3_all),
+        "max": float(max_o3_all),
+        "mean": round(sum(mean_o3_all) / all_count, 1)
+    },
+}
+
+with open('ozon.json', 'w') as f:
+    json.dump(json_answer, f)
+
+for year in range(1979, 2021):
+  for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']]:
+    years_and_months = [str(year) + " " + str(month) ]
+
+fig, ax = plt.subplots()
+plt.plot(years_and_months, mean_o3_all, '-', label='Monthly content from 1979 to 2020')
+plt.plot(years_and_months[5::12], jul_mean_O3, '-', label='Every July from 1979 to 2020')
+plt.plot(years_and_months[0::12], jan_mean_O3, '-', label='Every January from 1979 to 2020')
+ax.set_xlabel('Year')
+ax.set_ylabel('Ozon Content')
+plt.legend()
+fig.set_figwidth(20)
+fig.set_figheight(8)
+plt.savefig('ozon.png')
