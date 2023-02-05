@@ -80,14 +80,12 @@ with open('ozon.json', 'w') as f:
 for year in range(1979, 2021):
   for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']]:
     years_and_months = [str(year) + " " + str(month) ]
-
-fig, ax = plt.subplots()
-plt.plot(years_and_months, mean_o3_all, '-', label='Monthly content from 1979 to 2020')
-plt.plot(years_and_months[5::12], jul_mean_O3, '-', label='Every July from 1979 to 2020')
-plt.plot(years_and_months[0::12], jan_mean_O3, '-', label='Every January from 1979 to 2020')
-ax.set_xlabel('Year')
-ax.set_ylabel('Ozon Content')
+    
+plt.plot(years_and_months, mean_o3_all, label='Monthly content from 1979 to 2020')
+plt.plot(years_and_months[5::12], mean_o3_jul, label='Every July from 1979 to 2020')
+plt.plot(years_and_months[0::12], mean_o3_jan, label='Every January from 1979 to 2020')
 plt.legend()
-fig.set_figwidth(20)
-fig.set_figheight(8)
+plt.grid()
+plt.xlabel('Year')
+plt.ylabel('Ozon Content')
 plt.savefig('ozon.png')
