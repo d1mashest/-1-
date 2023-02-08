@@ -78,7 +78,7 @@ with open('ozon.json', 'w') as f:
     json.dump(json_answer, f)
 
 for year in range(1979, 2021):
-  for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']]:
+  for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']:
     years_and_months = [str(year) + " " + str(month) ]
 plt.plot(years_and_months, mean_o3_all, '-', label='Monthly content from 1979 to 2020')
 plt.plot(years_and_months[5::12], mean_o3_jul, '-', label='Every July from 1979 to 2020')
